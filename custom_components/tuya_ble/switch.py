@@ -27,11 +27,9 @@ TuyaBLESwitchGetter = (
     Callable[["TuyaBLESwitch", TuyaBLEProductInfo], bool | None] | None
 )
 
-
 TuyaBLESwitchIsAvailable = (
     Callable[["TuyaBLESwitch", TuyaBLEProductInfo], bool] | None
 )
-
 
 TuyaBLESwitchSetter = (
     Callable[["TuyaBLESwitch", TuyaBLEProductInfo, bool], None] | None
@@ -91,7 +89,7 @@ def set_fingerbot_program_repeat_forever(
         datapoint = self._device.datapoints[product.fingerbot.program]
         if datapoint and type(datapoint.value) is bytes:
             new_value = (
-                int.to_bytes(0xFFFF if value else 1, 2, "big") + 
+                int.to_bytes(0xFFFF if value else 1, 2, "big") +
                 datapoint.value[2:]
             )
             self._hass.create_task(datapoint.set_value(new_value))
@@ -163,7 +161,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
     "ms": TuyaBLECategorySwitchMapping(
         products={
             **dict.fromkeys(
-                ["ludzroix", "isk2p555"], # Smart Lock
+                ["ludzroix", "isk2p555"],  # Smart Lock
                 [
                     TuyaBLESwitchMapping(
                         dp_id=47,
@@ -171,9 +169,9 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                             key="lock_motor_state",
                         ),
                     ),
-                ]
+                ],
             ),
-        }
+        },
     ),
     "szjqr": TuyaBLECategorySwitchMapping(
         products={
@@ -189,7 +187,7 @@ mapping: dict[str, TuyaBLECategorySwitchMapping] = {
                     "blliqpsj",
                     "ndvkgsrm",
                     "yiihr7zh",
-                    "neq16kgd"
+                    "neq16kgd",
                 ],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotSwitchMapping(dp_id=2),
@@ -378,7 +376,6 @@ class TuyaBLESwitch(TuyaBLEEntity, SwitchEntity):
     @property
     def is_on(self) -> bool:
         """Return true if switch is on."""
-
         if self._mapping.getter:
             return self._mapping.getter(self, self._product)
 

@@ -17,16 +17,11 @@ from homeassistant.helpers.entity import EntityCategory
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import (
-    DOMAIN,
-)
+from .const import DOMAIN
 from .devices import TuyaBLEData, TuyaBLEEntity, TuyaBLEProductInfo
 from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
 
 _LOGGER = logging.getLogger(__name__)
-
-SIGNAL_STRENGTH_DP_ID = -1
-
 
 TuyaBLEBinarySensorIsAvailable = (
     Callable[["TuyaBLEBinarySensor", TuyaBLEProductInfo], bool] | None
@@ -40,8 +35,7 @@ class TuyaBLEBinarySensorMapping:
     force_add: bool = True
     dp_type: TuyaBLEDataPointType | None = None
     getter: Callable[[TuyaBLEBinarySensor], None] | None = None
-    #coefficient: float = 1.0
-    #icons: list[str] | None = None
+    bitmap_mask: bytes | None = None
     is_available: TuyaBLEBinarySensorIsAvailable = None
 
 
@@ -52,6 +46,30 @@ class TuyaBLECategoryBinarySensorMapping:
 
 
 mapping: dict[str, TuyaBLECategoryBinarySensorMapping] = {
+    "swtz": TuyaBLECategoryBinarySensorMapping(
+        products={
+            "iv13iqhf": [  # BBQ Thermometer SK-T100
+                TuyaBLEBinarySensorMapping(
+                    dp_id=23,
+                    description=BinarySensorEntityDescription(
+                        key="cook_temp_alarm_1",
+                        name="Probe 1 At Target",
+                        icon="mdi:thermometer-check",
+                    ),
+                    bitmap_mask=b"\x01",
+                ),
+                TuyaBLEBinarySensorMapping(
+                    dp_id=23,
+                    description=BinarySensorEntityDescription(
+                        key="cook_temp_alarm_2",
+                        name="Probe 2 At Target",
+                        icon="mdi:thermometer-check",
+                    ),
+                    bitmap_mask=b"\x02",
+                ),
+            ],
+        },
+    ),
     "wk": TuyaBLECategoryBinarySensorMapping(
         products={
             "drlajpqc": [  # Thermostatic Radiator Valve
@@ -59,7 +77,6 @@ mapping: dict[str, TuyaBLECategoryBinarySensorMapping] = {
                     dp_id=105,
                     description=BinarySensorEntityDescription(
                         key="battery",
-                        #icon="mdi:battery-alert",
                         device_class=BinarySensorDeviceClass.BATTERY,
                         entity_category=EntityCategory.DIAGNOSTIC,
                     ),
@@ -106,30 +123,21 @@ class TuyaBLEBinarySensor(TuyaBLEEntity, BinarySensorEntity):
         else:
             datapoint = self._device.datapoints[self._mapping.dp_id]
             if datapoint:
-                self._attr_is_on = bool(datapoint.value)
-                '''
-                if datapoint.type == TuyaBLEDataPointType.DT_ENUM:
-                    if self.entity_description.options is not None:
-                        if datapoint.value >= 0 and datapoint.value < len(
-                            self.entity_description.options
-                        ):
-                            self._attr_native_value = self.entity_description.options[
-                                datapoint.value
-                            ]
-                        else:
-                            self._attr_native_value = datapoint.value
-                    if self._mapping.icons is not None:
-                        if datapoint.value >= 0 and datapoint.value < len(
-                            self._mapping.icons
-                        ):
-                            self._attr_icon = self._mapping.icons[datapoint.value]
-                elif datapoint.type == TuyaBLEDataPointType.DT_VALUE:
-                    self._attr_native_value = (
-                        datapoint.value / self._mapping.coefficient
+                if (
+                    datapoint.type in [
+                        TuyaBLEDataPointType.DT_RAW,
+                        TuyaBLEDataPointType.DT_BITMAP,
+                    ]
+                    and self._mapping.bitmap_mask
+                ):
+                    bitmap_value = bytes(datapoint.value)
+                    bitmap_mask = self._mapping.bitmap_mask
+                    self._attr_is_on = any(
+                        (v & m) != 0
+                        for v, m in zip(bitmap_value, bitmap_mask)
                     )
                 else:
-                    self._attr_native_value = datapoint.value
-                '''
+                    self._attr_is_on = bool(datapoint.value)
         self.async_write_ha_state()
 
     @property
@@ -146,7 +154,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Tuya BLE sensors."""
+    """Set up the Tuya BLE binary sensors."""
     data: TuyaBLEData = hass.data[DOMAIN][entry.entry_id]
     mappings = get_mapping_by_device(data.device)
     entities: list[TuyaBLEBinarySensor] = []

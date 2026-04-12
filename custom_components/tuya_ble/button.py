@@ -21,7 +21,6 @@ from .tuya_ble import TuyaBLEDataPointType, TuyaBLEDevice
 
 _LOGGER = logging.getLogger(__name__)
 
-
 TuyaBLEButtonIsAvailable = Callable[["TuyaBLEButton", TuyaBLEProductInfo], bool] | None
 
 
@@ -32,6 +31,8 @@ class TuyaBLEButtonMapping:
     force_add: bool = True
     dp_type: TuyaBLEDataPointType | None = None
     is_available: TuyaBLEButtonIsAvailable = None
+    # If press_value is set, always write that fixed value instead of toggling
+    press_value: bool | None = None
 
 
 def is_fingerbot_in_push_mode(self: TuyaBLEButton, product: TuyaBLEProductInfo) -> bool:
@@ -60,6 +61,21 @@ class TuyaBLECategoryButtonMapping:
 
 
 mapping: dict[str, TuyaBLECategoryButtonMapping] = {
+    "swtz": TuyaBLECategoryButtonMapping(
+        products={
+            "iv13iqhf": [  # BBQ Thermometer SK-T100
+                TuyaBLEButtonMapping(
+                    dp_id=44,
+                    description=ButtonEntityDescription(
+                        key="alarm_cancel",
+                        name="Cancel Alarm",
+                        icon="mdi:alarm-off",
+                    ),
+                    press_value=False,
+                ),
+            ],
+        },
+    ),
     "szjqr": TuyaBLECategoryButtonMapping(
         products={
             **dict.fromkeys(
@@ -72,8 +88,8 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
                 [
                     "blliqpsj",
                     "ndvkgsrm",
-                    "yiihr7zh", 
-                    "neq16kgd"
+                    "yiihr7zh",
+                    "neq16kgd",
                 ],  # Fingerbot Plus
                 [
                     TuyaBLEFingerbotModeMapping(dp_id=2),
@@ -97,8 +113,7 @@ mapping: dict[str, TuyaBLECategoryButtonMapping] = {
     ),
     "znhsb": TuyaBLECategoryButtonMapping(
         products={
-            "cdlandip":  # Smart water bottle
-            [
+            "cdlandip": [  # Smart water bottle
                 TuyaBLEButtonMapping(
                     dp_id=109,
                     description=ButtonEntityDescription(
@@ -141,13 +156,30 @@ class TuyaBLEButton(TuyaBLEEntity, ButtonEntity):
 
     def press(self) -> None:
         """Press the button."""
-        datapoint = self._device.datapoints.get_or_create(
-            self._mapping.dp_id,
-            TuyaBLEDataPointType.DT_BOOL,
-            False,
-        )
-        if datapoint:
-            self._hass.create_task(datapoint.set_value(not bool(datapoint.value)))
+        if self._mapping.press_value is not None:
+            # For a fixed-value press, fetch the existing datapoint if available
+            # or create it, then write the fixed value unconditionally
+            datapoint = self._device.datapoints[self._mapping.dp_id]
+            if datapoint is None:
+                datapoint = self._device.datapoints.get_or_create(
+                    self._mapping.dp_id,
+                    TuyaBLEDataPointType.DT_BOOL,
+                    self._mapping.press_value,
+                )
+            if datapoint:
+                self._hass.create_task(
+                    datapoint.set_value(self._mapping.press_value)
+                )
+        else:
+            datapoint = self._device.datapoints.get_or_create(
+                self._mapping.dp_id,
+                TuyaBLEDataPointType.DT_BOOL,
+                False,
+            )
+            if datapoint:
+                self._hass.create_task(
+                    datapoint.set_value(not bool(datapoint.value))
+                )
 
     @property
     def available(self) -> bool:
@@ -163,7 +195,7 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Tuya BLE sensors."""
+    """Set up the Tuya BLE buttons."""
     data: TuyaBLEData = hass.data[DOMAIN][entry.entry_id]
     mappings = get_mapping_by_device(data.device)
     entities: list[TuyaBLEButton] = []

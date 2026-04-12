@@ -35,11 +35,9 @@ TuyaBLENumberGetter = (
     Callable[["TuyaBLENumber", TuyaBLEProductInfo], float | None] | None
 )
 
-
 TuyaBLENumberIsAvailable = (
     Callable[["TuyaBLENumber", TuyaBLEProductInfo], bool] | None
 )
-
 
 TuyaBLENumberSetter = (
     Callable[["TuyaBLENumber", TuyaBLEProductInfo, float], None] | None
@@ -109,7 +107,6 @@ def is_fingerbot_repeat_count_available(
             if datapoint and type(datapoint.value) is bytes:
                 repeat_count = int.from_bytes(datapoint.value[0:2], "big")
                 result = repeat_count != 0xFFFF
-
     return result
 
 
@@ -123,7 +120,6 @@ def get_fingerbot_program_repeat_count(
         if datapoint and type(datapoint.value) is bytes:
             repeat_count = int.from_bytes(datapoint.value[0:2], "big")
             result = repeat_count * 1.0
-
     return result
 
 
@@ -151,7 +147,6 @@ def get_fingerbot_program_position(
         datapoint = self._device.datapoints[product.fingerbot.program]
         if datapoint and type(datapoint.value) is bytes:
             result = datapoint.value[2] * 1.0
-
     return result
 
 
@@ -247,6 +242,42 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
             ],
         },
     ),
+    "swtz": TuyaBLECategoryNumberMapping(
+        products={
+            "iv13iqhf": [  # BBQ Thermometer SK-T100
+                TuyaBLENumberMapping(
+                    dp_id=10,
+                    coefficient=10.0,
+                    description=NumberEntityDescription(
+                        key="cook_temperature_set",
+                        name="Probe 1 Target Temperature",
+                        device_class=NumberDeviceClass.TEMPERATURE,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                        native_max_value=300.0,
+                        native_min_value=-30.0,
+                        native_step=0.1,
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    mode=NumberMode.BOX,
+                ),
+                TuyaBLENumberMapping(
+                    dp_id=11,
+                    coefficient=10.0,
+                    description=NumberEntityDescription(
+                        key="cook_temperature_2_set",
+                        name="Probe 2 Target Temperature",
+                        device_class=NumberDeviceClass.TEMPERATURE,
+                        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+                        native_max_value=300.0,
+                        native_min_value=-30.0,
+                        native_step=0.1,
+                        entity_category=EntityCategory.CONFIG,
+                    ),
+                    mode=NumberMode.BOX,
+                ),
+            ],
+        },
+    ),
     "szjqr": TuyaBLECategoryNumberMapping(
         products={
             **dict.fromkeys(
@@ -272,7 +303,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
                     "blliqpsj",
                     "ndvkgsrm",
                     "yiihr7zh",
-                    "neq16kgd"
+                    "neq16kgd",
                 ],  # Fingerbot Plus
                 [
                     TuyaBLENumberMapping(
@@ -394,8 +425,7 @@ mapping: dict[str, TuyaBLECategoryNumberMapping] = {
     ),
     "znhsb": TuyaBLECategoryNumberMapping(
         products={
-            "cdlandip":  # Smart water bottle
-            [
+            "cdlandip": [  # Smart water bottle
                 TuyaBLENumberMapping(
                     dp_id=103,
                     description=NumberEntityDescription(
@@ -492,7 +522,11 @@ class TuyaBLENumber(TuyaBLEEntity, NumberEntity):
 
         datapoint = self._device.datapoints[self._mapping.dp_id]
         if datapoint:
-            return datapoint.value / self._mapping.coefficient
+            raw = datapoint.value
+            # -3000 or below (raw) means no target set — Tuya sentinel for unset
+            if isinstance(raw, (int, float)) and raw <= -3000:
+                return None
+            return raw / self._mapping.coefficient
 
         return self._mapping.description.native_min_value
 

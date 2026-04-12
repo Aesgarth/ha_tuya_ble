@@ -16,8 +16,6 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.components.tuya.const import (
-    CONF_APP_TYPE,
-    CONF_ENDPOINT,
     DOMAIN as TUYA_DOMAIN,
     TUYA_RESPONSE_RESULT,
     TUYA_RESPONSE_SUCCESS,
@@ -53,14 +51,15 @@ from .const import (
     TUYA_API_DEVICES_URL,
     TUYA_API_FACTORY_INFO_URL,
     TUYA_FACTORY_INFO_MAC,
-    TUYA_API_DEVICES_URL,
-    TUYA_API_FACTORY_INFO_URL,
-    TUYA_FACTORY_INFO_MAC,
     CONF_ACCESS_ID,
     CONF_ACCESS_SECRET,
     CONF_AUTH_TYPE,
     SMARTLIFE_APP,
 )
+
+# Removed from homeassistant.components.tuya.const in HA 2024.2+
+CONF_APP_TYPE = "tuya_app_type"
+CONF_ENDPOINT = "endpoint"
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -176,7 +176,7 @@ class TuyaBLECategoryInfo:
 devices_database: dict[str, TuyaBLECategoryInfo] = {
     "co2bj": TuyaBLECategoryInfo(
         products={
-            "59s19z5m": TuyaBLEProductInfo(  # device product_id
+            "59s19z5m": TuyaBLEProductInfo(
                 name="CO2 Detector",
             ),
         },
@@ -186,17 +186,24 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
             **dict.fromkeys(
                 [
                     "ludzroix",
-                    "isk2p555"
+                    "isk2p555",
                 ],
-                    TuyaBLEProductInfo(  # device product_id
+                TuyaBLEProductInfo(
                     name="Smart Lock",
                 ),
             ),
         },
     ),
+    "swtz": TuyaBLECategoryInfo(
+        products={
+            "iv13iqhf": TuyaBLEProductInfo(
+                name="BBQ Thermometer",
+            ),
+        },
+    ),
     "szjqr": TuyaBLECategoryInfo(
         products={
-            "3yqdo5yt": TuyaBLEProductInfo(  # device product_id
+            "3yqdo5yt": TuyaBLEProductInfo(
                 name="CUBETOUCH 1s",
                 fingerbot=TuyaBLEFingerbotInfo(
                     switch=1,
@@ -207,7 +214,7 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                     reverse_positions=4,
                 ),
             ),
-            "xhf790if": TuyaBLEProductInfo(  # device product_id
+            "xhf790if": TuyaBLEProductInfo(
                 name="CubeTouch II",
                 fingerbot=TuyaBLEFingerbotInfo(
                     switch=1,
@@ -222,9 +229,9 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                 [
                     "blliqpsj",
                     "ndvkgsrm",
-                    "yiihr7zh", 
-                    "neq16kgd"
-                ],  # device product_ids
+                    "yiihr7zh",
+                    "neq16kgd",
+                ],
                 TuyaBLEProductInfo(
                     name="Fingerbot Plus",
                     fingerbot=TuyaBLEFingerbotInfo(
@@ -248,7 +255,7 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
                     "bnt7wajf",
                     "rvdceqjh",
                     "5xhbk964",
-                ],  # device product_ids
+                ],
                 TuyaBLEProductInfo(
                     name="Fingerbot",
                     fingerbot=TuyaBLEFingerbotInfo(
@@ -267,27 +274,26 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
     "wk": TuyaBLECategoryInfo(
         products={
             **dict.fromkeys(
-            [
-            "drlajpqc", 
-            "nhj2j7su",
-            ],  # device product_id
-            TuyaBLEProductInfo(  
-                name="Thermostatic Radiator Valve",
+                [
+                    "drlajpqc",
+                    "nhj2j7su",
+                ],
+                TuyaBLEProductInfo(
+                    name="Thermostatic Radiator Valve",
                 ),
             ),
         },
     ),
     "wsdcg": TuyaBLECategoryInfo(
         products={
-            "ojzlzzsw": TuyaBLEProductInfo(  # device product_id
+            "ojzlzzsw": TuyaBLEProductInfo(
                 name="Soil moisture sensor",
             ),
         },
     ),
     "znhsb": TuyaBLECategoryInfo(
         products={
-            "cdlandip":  # device product_id
-            TuyaBLEProductInfo(
+            "cdlandip": TuyaBLEProductInfo(
                 name="Smart water bottle",
             ),
         },
@@ -296,10 +302,10 @@ devices_database: dict[str, TuyaBLECategoryInfo] = {
         products={
             **dict.fromkeys(
                 [
-                "6pahkcau", 
-                "hfgdqhho",
-                ],  # device product_id
-                TuyaBLEProductInfo( 
+                    "6pahkcau",
+                    "hfgdqhho",
+                ],
+                TuyaBLEProductInfo(
                     name="Irrigation computer",
                 ),
             ),
