@@ -124,6 +124,20 @@ class TuyaBLECategorySwitchMapping:
 
 
 mapping: dict[str, TuyaBLECategorySwitchMapping] = {
+    "swtz": TuyaBLECategorySwitchMapping(
+        products={
+            "iv13iqhf": [  # BBQ Thermometer SK-T100
+                TuyaBLESwitchMapping(
+                    dp_id=44,
+                    description=SwitchEntityDescription(
+                        key="alarm_cancel",
+                        name="Cancel Alarm",
+                        icon="mdi:alarm-off",
+                    ),
+                ),
+            ],
+        },
+    ),
     "co2bj": TuyaBLECategorySwitchMapping(
         products={
             "59s19z5m": [  # CO2 Detector

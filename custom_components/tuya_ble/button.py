@@ -61,21 +61,7 @@ class TuyaBLECategoryButtonMapping:
 
 
 mapping: dict[str, TuyaBLECategoryButtonMapping] = {
-    "swtz": TuyaBLECategoryButtonMapping(
-        products={
-            "iv13iqhf": [  # BBQ Thermometer SK-T100
-                TuyaBLEButtonMapping(
-                    dp_id=44,
-                    description=ButtonEntityDescription(
-                        key="alarm_cancel",
-                        name="Cancel Alarm",
-                        icon="mdi:alarm-off",
-                    ),
-                    press_value=False,
-                ),
-            ],
-        },
-    ),
+
     "szjqr": TuyaBLECategoryButtonMapping(
         products={
             **dict.fromkeys(
