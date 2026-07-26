@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum
+from enum import StrEnum
 
 GATT_MTU = 20
 
